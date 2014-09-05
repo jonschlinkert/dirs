@@ -7,19 +7,41 @@
 
 'use strict';
 
-var path = require('path');
 var assert = require('assert');
 var should = require('should');
-var dirs = require('..');
+var isDirectory = require('is-directory');
+var dirs = require('./');
 
-var fixtures = path.join(__dirname, '../node_modules/fixture');
-var data = fixtures + '/data';
-
+function isDir (fp) {
+  return isDirectory.sync(fp);
+}
+function isFile (fp) {
+  return !isDir(fp);
+}
+function matches (re) {
+  return function(filepath) {
+    return re.test(filepath);
+  }
+}
 
 describe('dirs', function () {
-  it('should return an array of directories', function () {
-    var actual = dirs(data);
+  it('should return an array of directories and files', function () {
+    var actual = dirs('fixtures');
     actual.should.be.an.array;
     assert.equal(actual.length > 1, true);
+  });
+
+  it('should list directories', function () {
+    var actual = dirs('fixtures').filter(isDir);
+    actual.should.be.an.array;
+    assert.equal(actual.length > 1, true);
+    assert.equal(actual.filter(matches(/\.js/)).length === 0, true);
+  });
+
+  it('should list files', function () {
+    var actual = dirs('fixtures').filter(isFile);
+    actual.should.be.an.array;
+    assert.equal(actual.length > 1, true);
+    assert.equal(actual.filter(matches(/\.js/)).length > 1, true);
   });
 });

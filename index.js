@@ -1,18 +1,19 @@
+'use strict';
+
 var fs = require('fs');
+var isDir = require('is-directory');
 
-var dirs = module.exports = function(dir) {
+
+module.exports = function dirs(dir) {
  return fs.readdirSync(dir)
-  .reduce(function(filemap, filepath) {
+  .reduce(function(acc, filepath) {
     filepath = [dir, filepath].join('/');
-    if (dirs.isDir(filepath)) {
-      filemap = filemap.concat(dirs(filepath));
-    }
-    filemap.push(filepath);
-    return filemap;
-  }, []);
-};
 
-dirs.isDir = function(filepath) {
-  var stat = fs.statSync(filepath);
-  return stat && stat.isDirectory();
+    if (isDir.sync(filepath)) {
+      acc = acc.concat(dirs(filepath));
+    }
+
+    acc.push(filepath);
+    return acc;
+  }, []);
 };
