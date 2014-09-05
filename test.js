@@ -9,12 +9,10 @@
 
 var assert = require('assert');
 var should = require('should');
-var isDirectory = require('is-directory');
+var isDir = require('is-directory');
 var dirs = require('./');
 
-function isDir (fp) {
-  return isDirectory.sync(fp);
-}
+
 function isFile (fp) {
   return !isDir(fp);
 }
@@ -25,23 +23,55 @@ function matches (re) {
 }
 
 describe('dirs', function () {
+  it('should return an array of directories and files', function (done) {
+    dirs('fixtures', function (err, files) {
+      files.should.be.an.array;
+      assert.equal(files.length > 1, true);
+      done();
+    });
+  });
+
+  it('should list directories', function (done) {
+    dirs('fixtures', function (err, files) {
+      files = files.filter(isDir);
+
+      files.should.be.an.array;
+      assert.equal(files.length > 1, true);
+      assert.equal(files.filter(matches(/\.js/)).length === 0, true);
+      done();
+    });
+  });
+
+  it('should list files', function (done) {
+    dirs('fixtures', function (err, files) {
+      files = files.filter(isFile);
+
+      files.should.be.an.array;
+      assert.equal(files.length > 1, true);
+      assert.equal(files.filter(matches(/\.js/)).length > 1, true);
+      done();
+    });
+  });
+});
+
+describe('dirs sync', function () {
   it('should return an array of directories and files', function () {
-    var actual = dirs('fixtures');
-    actual.should.be.an.array;
-    assert.equal(actual.length > 1, true);
+    var files = dirs('fixtures');
+    files.should.be.an.array;
+    assert.equal(files.length > 1, true);
   });
 
   it('should list directories', function () {
-    var actual = dirs('fixtures').filter(isDir);
-    actual.should.be.an.array;
-    assert.equal(actual.length > 1, true);
-    assert.equal(actual.filter(matches(/\.js/)).length === 0, true);
+    var files = dirs('fixtures').filter(isDir);
+    files.should.be.an.array;
+    assert.equal(files.length > 1, true);
+    assert.equal(files.filter(matches(/\.js/)).length === 0, true);
   });
 
   it('should list files', function () {
-    var actual = dirs('fixtures').filter(isFile);
-    actual.should.be.an.array;
-    assert.equal(actual.length > 1, true);
-    assert.equal(actual.filter(matches(/\.js/)).length > 1, true);
+    var files = dirs('fixtures').filter(isFile);
+    files.should.be.an.array;
+    assert.equal(files.length > 1, true);
+    assert.equal(files.filter(matches(/\.js/)).length > 1, true);
   });
 });

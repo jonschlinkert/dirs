@@ -1,7 +1,7 @@
 {
   "name": "dirs",
-  "description": "List directories or files.",
-  "version": "0.1.0",
+  "description": "List directories or files, async or sync.",
+  "version": "0.1.1",
   "homepage": "https://github.com/jonschlinkert/dirs",
   "author": {
     "name": "Jon Schlinkert",
@@ -28,7 +28,8 @@
     "test": "mocha -R spec"
   },
   "dependencies": {
-    "is-directory": "^0.2.0"
+    "async": "^0.9.0",
+    "is-directory": "^0.2.1"
   },
   "devDependencies": {
     "mocha": "*",

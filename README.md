@@ -1,7 +1,7 @@
 # dirs [![NPM version](https://badge.fury.io/js/dirs.svg)](http://badge.fury.io/js/dirs)
 
 
-> List directories or files.
+> List directories or files, async or sync.
 
 ## Install
 #### Install with [npm](npmjs.org):
@@ -20,7 +20,16 @@ npm test
 
 ```js
 var list = require('dirs');
-console.log(list('fixtures'));
+
+// async
+list('fixtures', function (err, files) {
+  if (err) console.log(err);
+  console.log(files)
+});
+
+// sync
+var files = list('fixtures');
+console.log(files);
 ```
 
 ### Filtering
@@ -31,8 +40,18 @@ Use whatever filtering function you need on the returned array:
 
 ```js
 var isDir = require('is-directory');
-console.log(dirs('fixtures').filter(isDir.sync));
-//=> [ 'fixtures/one', 'fixtures/three', 'fixtures/two' ]
+
+// async
+list('fixtures', function (err, files) {
+  if (err) console.log(err);
+
+  files = files.filter(isDir);
+  console.log(files)
+  //=> [ 'fixtures/one', 'fixtures/three', 'fixtures/two' ]
+});
+
+// Sync
+console.log(list('fixtures').filter(isDir));
 ```
 
 
