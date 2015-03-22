@@ -1,54 +1,65 @@
 /*!
  * dirs <https://github.com/jonschlinkert/dirs>
  *
- * Copyright (c) 2014 Jon Schlinkert, contributors.
- * Licensed under the MIT License
+ * Copyright (c) 2014-2015, Jon Schlinkert.
+ * Licensed under the MIT License.
  */
 
 'use strict';
 
 var fs = require('fs');
-var isDir = require('is-directory');
+var path = require('path');
+var async = require('async');
 
-var dirs = module.exports = function dirs(dir, cb) {
-  if (typeof cb !== 'function') {
-    return dirs.sync(dir);
+module.exports = dirs;
+
+function dirs(cwd, cb) {
+  if (arguments.length === 1) {
+    throw new Error('dirs async expects a callback function.');
   }
 
-  if (!dir.length) {
-    return cb(null, []);
-  }
+  fs.readdir(cwd, function(err, files) {
+    if (err) return cb(err);
+    var res = [];
 
-  fs.readdir(dir, function (err, files) {
-    if (err) {
-      return cb(err);
-    }
+    async.map(files, function(fp, next) {
+      fp = path.join(cwd, fp);
 
-    var arr = [];
+      fs.stat(fp, function(err, stats) {
+        if (err) return handle(err, next);
 
-    files.forEach(function (filepath) {
-      filepath = [dir, filepath].join('/');
-      if (isDir(filepath)) {
-        arr = arr.concat(dirs(filepath));
-      }
-      arr.push(filepath);
+        if (stats.isDirectory()) {
+          dirs(fp, function (err, files) {
+            if (err) return cb(err);
+            next(null, res.push.apply(res, files));
+          });
+          res.push(fp);
+        } else {
+          next(null, res.push(fp));
+        }
+
+      });
+    }, function(err) {
+      cb(err, res);
     });
-
-    return cb(null, arr);
   });
-};
+}
 
+function handle(err, next) {
+  return (err.code !== 'ENOENT') ? next(err) : next();
+}
 
 dirs.sync = function dirsSync(dir) {
-  return fs.readdirSync(dir)
-    .reduce(function (acc, filepath) {
-      filepath = [dir, filepath].join('/');
+  var files = fs.readdirSync(dir);
+  var len = files.length, i = 0;
+  var res = [];
 
-      if (isDir(filepath)) {
-        acc = acc.concat(dirs(filepath));
-      }
-
-      acc.push(filepath);
-      return acc;
-    }, []);
+  while (len--) {
+    var fp = path.join(dir, files[i++]);
+    if (fs.statSync(fp).isDirectory()) {
+      res.push.apply(res, dirsSync(fp))
+    }
+    res.push(fp);
+  }
+  return res;
 };
